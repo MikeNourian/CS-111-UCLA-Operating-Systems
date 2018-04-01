@@ -1,0 +1,101 @@
+NAME: Milad Nourian
+ID: 00000000
+EMAIL: miladnourian@ucla.edu
+
+QUESTION 2.3.1 - Cycles in the basic list implementation:
+Where do you believe most of the cycles are spent in the 1 and 2- thread list tests ?
+In the case of 1 or 2 threads most of the time is spent executing instruction in the limited direct execution manner. So basically majority of time is spent in the insertion, deletion, look up and getting the length of the linked list. This is because with small number of threads, almost no time is spent switching between the threads of execution, so less time is wasted on the locking mechanisms(eg. waiting on the lock to become available), and without the synchronization overhead most of the time is spent executing instructions.
+
+Why do you believe these to be the most expensive parts of the code?
+In the low thread cases, the most expensive and time consuming parts of the code are the linked list operations used for insertion, deletion, lookup and delete that take more time, and for example, relatively less time is spent wasting cycles on the spin-lock to become availble in the cases with small number of threads. So in the case of small number of threads, most of the time is spent performing useful operations on the linked list and less time is wasted on the overhead of synchronization mechanisms.
+
+Where do you believe most of the time/cycles are being spent in the high-thread spin-lock tests?
+Most of the time is spent wasting cycles spinning and waiting for the lock to become available. When we spin, no useful instructions are performed, and basically those cycles of the cpu are wasted. This overhead causes the throughput (number of operations/second) to suffer significantly especially when we increase the number of threads (more contention) since this would mean that now the threads will be scheduled one after another wasting cycles of the cpu, which increases the wasted time (overhead) and reduces the throughput.
+
+
+Where do you believe most of the time/cycles are being spent in the high-thread mutex tests?
+Most of the time in this case is spent on executing instructions for list (insert, delete, lookup, and length of list), since in the case of the mutex, the thread that cannot acquire the mutex lock goes to sleep and does not get scheduled by the scheduler until the lock is freed (and pthread_mutex_free() is called) which means the cycles are not wasted doing nothing (like spin-lock waste of cycles) and instead cycles are used performed instructions.
+
+Therefore, we can see from the throughput graph (lab2b-1.png) that spin-lock scales very poorly with number of threads.
+
+
+QUESTION 2.3.2 - Execution Profiling:
+Where (what lines of code) are consuming most of the cycles when the spin-lock version of the list exerciser is run with a large number of threads?
+By using the pprof tool with --list which shows the  break down of how much each instruction takes, we can see which instructions in the program, takes the biggest number of samples (most time is spent here).
+Most of the time is spent on this line as shown in the profile.out:
+while (__sync_lock_test_and_set(&spinLockVar, 1));
+
+This also matches what we would expect from theory, in spin lock, many CPU cycles are wasted waiting for the lock to become available so different threads can enter their critical sections. 
+
+Why does this operation become so expensive with large numbers of threads?
+With large number of threads, the contention for the lock increases since, now there are more threads waiting on a lock to become available. And when threads are scheduled, if they cannot acquire the lock, they would just spin checking if the lock has become available (while (__sync_lock_test_and_set(&spinLockVar, 1))). The reason that it becomes more expensive with number of threads is that the overhead increases when there are more threads that need to be scheduled and run, the cost of saving state and context switching increases. Also, with large number of threads, since only one thread can successfully acquire the lock at any given time in spin-lock, other threads have to waiting (spinning) for the lock, essentially wasting cycles and therefore, while (__sync_lock_test_and_set(&spinLockVar, 1)) becomes particularly expensive with spin-lock.
+
+
+
+QUESTION 2.3.3 - Mutex Wait Time:
+Look at the average time per operation (vs. # threads) and the average wait-for-mutex time (vs. #threads).
+o Why does the average lock-wait time rise so dramatically with the number of contending threads?
+The increase in the wait time is due to the overhead caused by the increase number of threads. When the number of threads increases, there are many more threads competing for a lock, and once one thread acquires the lock, the other threads cannot do anything (will be blocked, placed in queue and put to sleep) until the lock becomes available again and eventually one of the blocked threads acquires the lock again and the other threads stay blocked. 
+When the number of threads increases, the competition for the lock becomes more severe, and on average the wait time to acquire the lock increases significantly since now we have to wait on even more threads. An example can be if the scheduling policy was Round Robin or some other fair policy, if there are 4 threads, on maximum the 4th thread has to wait on 3 other threads, but if there are 80 threads, the last thread has to wait on 79 other threads, which evidently increases the total wait-time dramatically. Another issue that can also rise is starvation when a thread is never scheduled to perform its operations.
+
+
+o Why does the completion time per operation rise (less dramatically) with the number of contending threads?
+Reason 1) The reason is that average time (ns) per operation is indeed affected by the locking mechanisms that are in the play but in an indirect manner. As the number of threads increases, a significant amount of time is spent on acquiring the lock (wait for the lock to becomes available) and this would me that the total time spent to perform the given set of operations for the threads increases as the number of threads increases. The reason that it is less dramatic is because along with lock operations, there are also other simple operations that are performed by CPU very quickly, therefore, the dependency on the number of threads is less significant in comparison to the case when lock time (ns) per operation.
+Reason 2) The reason that the completion time per operation increases is also due to the effects of catching and the influence that context switching has on caching. Since with high number of threads, context switch occurs very frequently and threads run after another, the data and instructions that were in L1 and L2 caches, are useless now, and the new thread will encounter many cache misses which means the data must be obtained from main memory (RAM) which increases the completion time per operation with increase in the number of threads.
+
+o How is it possible for the wait time per operation to go up faster (or higher) than the completion time per operation?
+Reason 1) completion time per operation is less dependent on number of threads than wait-time per operation. Wait-time per operation is directly dependent on the number of threads as when the number of threads increases, many threads compete for the same lock, and since only one can acquire it at a given time, the other threads will be blocked and will not proceed until acquiring the lock. However, only a part of the completion time is spent performing locking, the rest is to perform direct instructions, so total time = locking mechanism time + regular instructions (regular instructions almost take constant time), so increase to the total is less dramatic. This less dependency on the thread count means that completion time per operation increases slower than than waiting time per operation.
+
+
+
+QUESTION 2.3.4 - Performance of Partitioned Lists
+o Explain the change in performance of the synchronized methods as a function of the number of lists.
+The performance of the partitioned graph is improved (the throughput increased) with the number of list. One reason is, now threads can acquire locks of different lists since each list has its own lock, which means the waiting time reduces, the competition is less(for multiple resources instead of 1) and the performance improves. In other words, if a thread wants to acquire the lock now, it has to compete with a smaller subset of threads (since there are multiple locks now), so contention decreases and performane improves with the number of lists. 
+
+
+o Should the throughput continue increasing as the number of lists is further increased? If not, explain why not.
+The throughput will not increase if we continue increasing the number of lists since it eventually hits a limit. This occurs when the number of lists and number of threads become equivalent, so that in a way, each thread can have its own lock, and perform operations on that lock when very few other threads are waiting on this lock.
+Also, Increasing number of lists means that the lists each now will have less elements as the hash functions would map the keys to different lists, however, the total overhead would be a lot since there are now many locks each used for a list and each contribute to the total overhead. 
+
+o It seems reasonable to suggest the throughput of an N-way partitioned list should be equivalent to the throughput of a single list
+with fewer (1/N) threads. Does this appear to be true in the above curves? If not, explain why not.
+This is indeed a reasonable statment as this trend is observed in the plots. One reason for this can be, if we assume each key gets assigned to a different list, now each thread will get one of those N lists so the total overhead for each thread reduces by 1/N.
+
+
+
+Description of the files:
+lab2_list.c: contains the source code of the program that parses the given command line and performs operations accordingly.
+
+Makefile: This conatins options for building and testing the program with options: make (for building executable), make tests (for running test cases), profile (for creating a profiling tool), graphs for creating the graphs, dist to make a tar file ready for distribution and also clean to delete the executable.
+
+lab2b_list.csv:
+contains the test results that is used to create the plots used along with gnuplot.
+
+profile.out: 
+profiling result which shows how much time is spent, on each of methods.
+
+
+lab2b_1.png
+lab2b_2.png
+lab2b_3.png
+lab2b_4.png
+lab2b_5.png:
+all images that contain the required data for the analysis.
+
+generateGoodList.sh:
+generates the results and direct them to lab2b_list.csv to be used to generate plots.
+
+README:
+contains the answers to the questions and also the description of the files included in the tarball file.
+
+SortedList.h:
+contains the prototypes of the functions that need to be implemented in the program.
+
+SortedList.c:
+contains the implementation of the functions included in SortedList.h file.
+
+
+
+
+
+

@@ -1,0 +1,30 @@
+NAME: Milad Nourian
+EMAIL: miladnourian@ucla.edu
+ID: 00000000
+a README file containing the serial number of your Beaglebone and the WiFi (unless you are using a hard-wired ethernet connnection) MAC address, and a description of the above files.
+
+Serial Number of the BeagleBone (obtained from the sticker on side of the BeagleBone):
+BBGW17080085
+
+MAC Number (both on the device and obtained on ifconfig HWaddr):
+2c:f7:f1:06:69:55
+
+
+IP address (what I used to ssh into the BeagleBone, obtained from ifconfig and inet address):
+inet addr:172.31.66.253
+
+The description of the files included in that tarball file:
+connected.png:
+shows that I succcessfully changed the hostname and the connection configuration using ifconfig which provides the IP and MAC addresses along with other network info.
+
+copy.png:
+shows that I successfully transfer hello.c from my local machine to the beagleBone through scp command.
+
+git.png:
+shows that git is installed on my BeagleBone and that I have successfully acquired a repository.
+
+my_beaglebone.png:
+shows an image of the chip while I am holding it.
+
+README: this file which contains info about the files included in the tarball file.
+

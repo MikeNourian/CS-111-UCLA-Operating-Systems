@@ -1,0 +1,18 @@
+NAME: Milad Nourian
+EMAIL: miladnourian@ucla.edu
+ID: 00000000
+
+File contained:
+4c_tcp.c:
+this is the source file for the first part of the lab where we use a TCP socket to make a connection to the department server and send packets over the network.
+
+4c_tls.c:
+this is the source file, modification of 4c_tcp.c, where we use OpenSSL library to encrypt the data sent over the network. 
+
+Makefile:
+Contains make to build, make clean to delete the extra created files, and make dist to create a tar file for distribution.
+
+README: this file, that has a description of all files submitted.
+
+Websites:
+https://www.openssl.org/docs/manmaster/man7/ssl.html

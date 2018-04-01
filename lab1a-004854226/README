@@ -1,0 +1,22 @@
+NAME: Milad Nourian
+EMAIL: miladnourian@ucla.edu
+ID: 00000000
+
+Description of the files:
+
+main.c:
+This is the source file used in this project. Basically I used termois library and library functions setattr and getattr to set up the terminal, where in the beginning of the program I first get the default mode of the terminal and then before exiting, restore that old mode of the terminal. 
+In addition, I used getopt_long library function to support argument parsing and user to input --shell option with no additional argument. If bogus input is entered, then the program would exit.
+Also, in the main function, I would create 2 pipes (in 2 different directions) to transfer data from terminal to the shell and also from the shell to the terminal.
+If --shell is given as an argument, I would use a fork to create a new copy of the process. In this level, I would check the return value of fork() and if it is 0, it means that the process is a child, and close the reading for the pipe from terminal to the shell and close writing for pipe from the shell to the terminal, and then after finishing the setup calling execv("/bin/bash"), to run the new process.
+In the parent process, I used polling to wait for the input from the keyboard and also from the shell pipe (from shell), and to process/read the input only when it is ready. I used POLLIN to find out when the input is ready, and POLLHUP/POLLERR for when the the poll encountered an error. When found a ^C in keyboard input, I sent the shell process(child) a SIGINT signal, but doesn't necessarily mean that the process will die right away. 
+If a ^D from the keyboard was received, the pipe from the terminal to the shell will be closed to tell the shell that the process is done sending it more input.
+If in reading the input from the shell, an EOF or POLLERR or POLLUP was encountered, I then finished reading and process the data that was still left
+in the pipe and then, use waitpid to find the exit status of the shell, print it to stderr and then exit the program.
+
+Makefile:
+includes the procedures and commands to make (compile), delete and clean (using make clean), and also create a tar (make dist).
+
+lab1a-004854226.tar.gz
+It is a tar that includes all the files described above.
+

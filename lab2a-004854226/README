@@ -1,0 +1,120 @@
+NAME: Milad Nourian 
+EMAIL: miladnourian@ucla.edu
+ID: 00000000
+
+
+QUESTION 2.1.1 - causing conflicts:
+Why does it take many iterations before errors are seen?
+Why does a significantly smaller number of iterations so seldom fail?
+
+When tesing for 10 threads, smaller number of iterations produced the correct results.
+For 10, and 100 iterations, the result (value of counter), is almost always correct (0). Increasing the number of iterations to 1000 or more, produces incorrect results. 
+
+The reason that many iterations are needed:
+When the number of iterations is less, the workload is less, and this means that the thread can finish its work in its timeslice before getting preempted, and before another thread enters the critical section at the same time. This means that the result generated will be correct and race condition does not occur for small number of iterations.
+
+ When a thread has to do many iterations to finish the job, it is very likely that the thread can not finish its job in the given timeslice which means that it will get preempted and so other threads do enter the critical section, so at a given time there are multiple threads in the critical section. This leads to the race condition, as the output varies with different iterations and the global variable is not protected by a lock to avoid this.
+
+
+
+
+
+QUESTION 2.1.2 - cost of yielding:
+Why are the --yield runs so much slower?
+When a thread yields, it gives up the CPU, and allows another thread to enter the critical section. The reason that yielding is so slow is because of the overhead, because the thread is stopped (interrupted) at an unusual time and the time slice is not completed. At this time, we have to save the context of the thread, perform a context switch and run the new thread. The can cause a significant amount of overhead which leads to slower execution.
+
+Where is the additional time going?
+The additional time = Time for saving the registers and states + perform the context switch + updating the scheduler queue + time for stopping and interruption of execution.
+
+
+Is it possible to get valid per-operation timings if we are using the --
+yield option?
+If so, explain how. If not, explain why not.
+Not a possibility. In this project we use the wall time to measure the time spent from the 
+beginning to the end and there might be multiple thread executing seperately, therefore, we 
+do not have a practical tool to get the valid per-operations time.
+
+
+
+
+QUESTION 2.1.3 - measurement errors:
+Why does the average cost per operation drop with increasing iterations?
+
+One reason is that when the number of iterations increases, then almost all of the time is spent (or another words bigger of proportions of time) is spend executing instructions and less of the time is spent in the context switching between threads when one finishes and a context switch occurs. So less time is spend in the pthread_create that is mainly overhead and does not produce any positive results.
+Another reason can be that increasing iterations (workload), means that now the threads will be scheduled for a longer timeslice and they use all the slice to perform computations.
+
+If the cost per iteration is a function of the number of iterations, how do we know how many iterations to run (or what the "correct" cost is)?
+
+As we increase the number of operations (number of iterations), the relative cost of creating a thread or performing a context switch, will be less so we would in fact spend more time executing instructions. So as we increase the number of iterations (number of operations to be performed), we can reach the true true cost.
+
+
+QUESTION 2.1.4 - costs of serialization:
+Why do all of the options perform similarly for low numbers of threads?
+
+When the number of threads is low, the execution of the program is less affected by the overhead of performing repetitve context switch between threads. This means that when a thread is about to enter the critical section, when the number of threads is low, then when other threads try to acquire this lock, since there is a small of number of threads, they do not have to wait for too long to get to the execution. Therefore, the performance is similar when dealing with small number of threads due to the fact that switching between threads is rare (less), and locking does not cause many of the threads to be waiting for a single resource (queue up to access a single resource) which result in similar behavior for different locking mechanisms.
+
+Why do the three protected operations slow down as the number of threads rises?
+This is mainly due to the overhead caused by the locking mechanisms and the also the high cost of performing many context switches when many threads try to access a single resource. Since the critical section is now protected with a lock, when other threads try to obtain a lock that is not available, they would have to wait. This means even if they are scheduled, they will not be able to perform any work, and have to wait for the resource until it becomes available. The time spent blocking or waiting for the lock to become available is what causes the slow down.
+
+
+Question in the specifications: Review the results, compare lab2_list-4.png with the analogous add timings (add-5.png):
+After analyzing and comparing the images for for lab2_list-4.png and add-5.png, we can see that the trends for the cost per operation for mutex and spin-locks are similar in both cases. In fact, in both cases, mutex locks take longer per operation in comparison to spin-locks which indicates from this result that spin-locks may be better on scalibility.
+
+QUESTION 2.2.1 - scalability of Mutex
+Compare the variation in time per mutex-protected operation vs the number of threads in Part-1 (adds) and Part-2 (sorted lists). Comment on the general shapes of the curves, and explain why they have this shape.
+Comment on the relative rates of increase and differences in the shapes of the curves, and offer an explanation for these differences.
+
+Analyzing and comparing the time per operation for mutex-protected cases, we observe that the trends are very similar for both cases of add and list, since they are both increasing with the number of threads and the general shape of graphs follow a very similar pattern. The increase stays almost linear throughout. The reason for the increasing trend (shape of the graph), is that the cost per operation increases as we increase the number of threads since the amount of overhead caused by increase in the number of threads means that the operations would become slower - so basically more time is spent context switching, locking, and unblocking and threads spend a bigger proportion of the time waiting to acquire a lock. This is the general rule, that when the number of threads increases the overhead of performing synchornization mechansims such as locking increases.
+Also, when comparing thr rate of increase, we can observe that list has a sharper increase (bigger slope) than add, and this can be due to the fact that for the list, for any of the operations (insert, delete, lookup, length), we have to lock the entire data structure to make sure what we read is not corrupted, which in return makes the slope of the graph (time per operation) sharper for list. Another reason can also be that with list operations, the size of the linked list changes dynamically and the length can increase over time which can lead to operations like insertion and deletion to take longer.
+
+
+
+QUESTION 2.2.2 - scalability of spin locks
+Compare the variation in time per protected operation vs the number of threads for list operations protected by Mutex vs Spin locks. Comment on the general shapes of the curves, and explain why they have this shape.
+Comment on the relative rates of increase and differences in the shapes of the curves, and offer an explanation for these differences.
+
+
+Analysing the graphs, we can see that the trend of cost per operation for spin-lock and mutex changes with number of threads, but the increase of the spin-lock is faster which can be an indication that spin-lock has lower scalibility than mutex locks.
+The general shapes of the graph is similar, as both mutex and spin-lock cost per operation increases as we increaset the number of threads, which means that for both of these locking mechanisms, the overhead of locking/unlockings increases with the number of threads since the amount of time spent saving the state, and perform the context switching increases.
+
+Mutex cost per operation is lower than cost per operation for the spin-lock (the graph sits above the spin lock graph) as seen mainly in add and list. Also the rate of increase (slope) for the spin-lock seems to be higher. Also, as observed in the graph, spin-lock sees a drop of cost when having 8 threads, which can be an indication that we are running on an 8 core machine that appropriately exploits parallelism and splits the work between all the cores.
+
+Also the reason for the difference in the shapes of the graph between mutex and spin-lock (and that mutex is slower) is because mutex locking mechanisms have different amounts of overhead and also have different low level implementations. For instance, spin-lock mechanism can waste a lot of CPU cycles since when a thread is not successful at acquiring a lock, it just keeps spinning and waiting (waiting doing nothing, until that lock becomes available). Also, mutex is implemented by the pthread library but on the low level, uses atomic functions and sleeping mechanisms(putting the thread to sleep when cannot acquire the lock). Also since mutex is implemented in the library, it is well-tested and should be well-written to minimize the overhead.
+
+
+Files description:
+lab2_add.c : this program take the command line arguments and has the function implementations for the add part of the project, and it produces the results that can be used for the analysis purposes.
+
+SortedList.h:
+given to us and has the function prototypes that we are supposed to implement as a part of the project.
+
+SortedList.c:
+has the implementations of the functions included in the header SortedList.h including insert, delete, length and lookup.
+
+Makefile:
+it builds the executables and also gives additional options:
+targets include: build (to create the executables), tests: to run the tests and fill up the .csv files used to produce the graphs, graphs: to create the graphs required in the .png format, dist to make the tar file and clean to remove the executables and extra files.
+
+lab2_add.csv
+lab2_list.csv:
+These are the result of test cases to be used to generate the graphs.
+
+5 .png files for add:
+lab2_add-1.png
+lab2_add-2.png
+lab2_add-3.png
+lab2_add-4.png
+lab2_add-5.png
+
+and 3 for list:
+lab2_list-1.png
+lab2_list-2.png
+lab2_list-3.png
+
+
+README file that includes the answers to the questions provided in the specs and the analysis of the lab, along with the description of the files included in the tarball file.
+
+
+
+
+

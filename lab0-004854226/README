@@ -1,0 +1,117 @@
+NAME: Milad Nourian
+EMAIL: miladnourian@ucla.edu
+ID: 00000000
+
+DESCRIPTION OF THE FILES INCLUDED IN THE TAR FILE:
+
+lab0.c 
+The source for the project in C that implements the functionalities given by the specifications described for lab0. For creating the correct source code to provide argument parsing that was described in the project, I had to find the syntax and rules of using getopt_long from the internet and read the documentation pages in order to find out how to use this library function in my implementation. In addition to the online resources and the examples available on the web, I had to work around with the function and permute the parameters; and in a sense, in a process of trial and error eventually find out how to incorporate this function into my code. The online sources that I used are listed below under "Resources" section. Also, to complete the project, I used the arguments given on the command line to perform the requested operation and to handle errors. If an error occured, the program should exit with the approprite exit code, for instance successful copying of a file from fd0 to fd1 would exit with 0, while failure to open the input file would exit with the exit code 2. For --segfault --catch option, I had to register a signal handler (signal_handle_for_segmentation), and segmentation fault generator (segmentation_fault_generator) to catch the generate SEGSEGV and exit with code 4.
+
+
+backtrace.png:
+This is a screenshot of the backtrace after the program was terminated with a segmentation fault. For this, I ran the following commands:
+$ gcc -o -g lab0.c lab0 
+since -g option is needed for using gdb to get informations regarding the state of the program.
+I then ran the following
+$ gdb lab0
+(gdb) run --segfault
+and then ran the following
+(gdb) bt
+to get the backtrace of the program stack when the program was terminated. 
+
+breakpoint.png:
+A screenshot that shows the value of the ptr to be 0, right before dereferencing it. 
+same as before backtrace, except this time I did the following:
+(gdb) break segmentation_fault_generator
+and then reran the program 
+(gdb) run --segfault
+the program hit the segmentation_fault_generator and stopped. At that point I started stepping into (si) and checking the values of the ptr,
+and right before dereferencing a null pointer (ptr), I ran the following:
+(gdb) print ptr
+to get the value of the ptr variable and as seen in the screenshot, this value is 0, which means the program attempted to dereference a null pointer.
+
+Makefile:
+Makefile written to support building and checking the behavior of the program by using commands: make, make check, make clean and make dist.
+Makefile uses the flags -Wall and -Wextra that enable the warnings. 
+
+I used the following for make check:
+
+check: all runAllTest
+
+runAllTest: checkSuccess checkOpenFailure checkCreatFailure checkSegFaultAndCatch checkUnrecognized
+
+
+checkSuccess:
+        echo "In the check Success"
+        echo "Hello World!" > inputFile.txt;\
+        ./lab0 --input=inputFile.txt --output=outputFile.txt ; \
+        if [ $$? -ne 0 ] ; \
+        then\
+                echo "checkSuccess failed" ;\
+        fi;\
+        rm *.txt
+
+checkUnrecognized:
+        ./lab0 --badargument ;\
+        if [ $$? -ne 1 ];\
+        then\
+                echo "There was an error handling the unrecognized argument, exited" ;\
+        fi ;\
+
+checkOpenFailure:
+        echo "Hello World!" > inputFile.txt;\
+        chmod ugo-r inputFile.txt ;\
+        ./lab0 --input=inputFile.txt --output=outputFile.txt ; \
+        if [ $$? -ne 2 ] ;\
+        then\
+                echo "checkOpenFailure faild with exit $$?" ;\
+        fi;\
+        chmod 777 inputFile.txt ;\
+        rm *.txt
+
+checkCreatFailure:
+        echo "Hello World!" > inputFile.txt;\
+        touch outputFile.txt;\
+        chmod u-w outputFile.txt ;\
+        ./lab0 --input=inputFile.txt --output=outputFile.txt ; \
+        if [ $$? -ne 3 ] ;\
+        then\
+                echo "checkCreatFailure failed with exit $$?";\
+        fi;\
+        chmod u+w outputFile.txt
+        rm *.txt
+
+checkSegFaultAndCatch:
+        ./lab0 --segfault --catch;\
+        if [ $$? -ne 4 ];\
+        then\
+                echo "checkSegFaultAndCatch with exit $$?";\
+        fi;\
+
+
+EXPLANATION for Makefile: 
+checkSuccess: checks to see if program succcessfully copies one file to another file and exit with code 0 if all the requirements are approprite.
+I create a test file inputFile.txt, and then use that file to run lab0 program and use the return code to check for errors.
+
+checkUnrecognized: basically checks whether the program detects an unrecognized argument and exit with code 1 when this occurs. I 
+accomplish this by running the lab0 program with a bad argument and check the return code.
+
+checkOpenFailure: checks whether the program exits with appropriate exit code (2) if there was an error opening the input file.
+For this I use chmod to change the permission on the input file (so it's not readable by the user anymore) and to check if the program 
+terminates with the correct exit code.
+
+checkCreatFailure: basically checks the exit code in case the program cannot successfully create the output file that is given by the command line.
+I used chmod to change permission on the output file so that the user cannot write to the file, and check the exit code.
+
+checkSegFaultAndCatch: basically checks the behavior and the exit code of the program if the user gives the --segfault and --catch to the command 
+line. If exit code is incorrect, the program will echo an error message.
+
+README:
+This README file explains the purpose of the files included in the tarball file submitted along with my identification information.
+
+RESOURCES:
+https://linuxprograms.wordpress.com/2012/06/22/c-getopt_long-example-accessing-command-line-arguments/
+https://linux.die.net/man/3/getopt_long
+https://stackoverflow.com/questions/7489093/getopt-long-proper-way-to-use-it
+
+

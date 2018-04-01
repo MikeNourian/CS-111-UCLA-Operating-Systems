@@ -1,0 +1,22 @@
+NAME: Charlotte McGinn
+UID: 00000000
+EMAIL: charlotte.mcginn@engineering.ucla.edu
+NAME: Milad Nourian
+EMAIL: miladnourian@ucla.edu
+
+3b.py:
+Python source module that provides the main functionality of our program. To execute, we create a symlink
+to 3b.py called lab3b and execute that way. This source file audits for Block Consistency, I-Node Allocation,
+and Directory Consistency.
+
+Makefile:
+Builds and runs our deliverable program. Since this is a Python script that does not require compilation,
+our default target creates a symlink called lab3b which executes 3b.py when run. The clean target
+deletes all makefield-created targets. The dist target builds our tarball to submit the lab.
+
+README:
+This nifty little document that you're reading right now. Has smol descriptions about the submitted files
+for this project.
+
+resources:
+https://www.tutorialspoint.com/python/python_dictionary.htm

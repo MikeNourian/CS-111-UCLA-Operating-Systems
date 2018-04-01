@@ -1,0 +1,19 @@
+NAME: Milad Nourian
+EMAIL: miladnourian@ucla.edu 
+ID: 00000000
+
+
+Description of the files:
+lab4b-004854226.tar.gz:
+this tar file includes README, Makefile, and main.c that are needed to perform the testing and building of this program.
+
+Makefile:
+this includes default make option to make the executable, check to run the basic smokecheck, clean to remove the exectuable and tar files that are created, and make dist to create a tar file that can be used for distribution.
+
+main.c: 
+includes the source code that used to run on the Beaglebone embedded system. 
+
+README:
+includes the description of the files.
+
+For performing the operations needed on the sensors of embedded system (BeagleBone), I used MRAA library which enables to interact with embedded devices and with components such as sensors.

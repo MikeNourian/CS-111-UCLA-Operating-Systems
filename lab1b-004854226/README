@@ -1,0 +1,36 @@
+NAME: Milad Nourian
+EMAIL: miladnourian@ucla.edu
+ID: 00000000
+
+Description of the files:
+client.c:
+This file contains the client code and performs the connection of the client to the server (and using local host) to perform intercommunication between processes by sending messages as streams over the socket (that has one end in the client side and the other end in the server side).
+The operations/functionalities performed in client.c are as follows:
+it starts by using getopt_long to get and parse the options specified by the user and check for errors in unrecognized inputs.
+Then it sets up the terminal, and first uses tcgetattr(STDIN_FILENO, &oldtio); to record the old state of the terminal (to go back to after completion) and then sets the other fields of the termois object and call tcsetattr(STDIN_FILENO, TCSANOW, &newtio).
+Then it registers a socket(file descriptor for communication purposes), then it gets the server and since we are running the 2 process on the same machine, client just uses the local host. After, it sets up the address of the server using the port number and .sin_family, it calls connect in order to connect to the server using the socket specified in the method. If connect fails, process exits.
+Then we wait for the input from the user, and if the compress option is specified, we compress and decompress the input using the functions defBuffer and infBuffer that I have written which accepts 2 buffers (one in and one out). It also echos the command that the user passes in to the screen and if --log=logFile option is specified, it records the sent and received bytes over the socket in that file. It sends the input given from the terminal to the server over the socket and also echos the input sent from the server over the socket to the screen.
+
+
+
+server.c:
+The server receives and sends messages via socket from and to the clients process. It calls fork(), to create a new process and then calls execv("/bin/bash") to open a shell process. It then uses pipes to communiacte with that shell process.
+It calls poll () and waits for the input from the client and also from the shell and processes each as the input is ready. If --compress is specifed, when message is received over the socket, it call defBuffer to deflate ("decompress") the message and then writes that buffer to the pipe that goes to the shell. Also when the input from the shell is ready (poll tells us when the input is ready), if --compress is given, it compresses the data in the buffer and then send the compressed data over a socket to the client, and if --compress is not specified, the compression/decompression process between the processes is excluded.
+
+README:
+contains the basic info about the files and the submitter's name, email and ID number.
+
+Makefile:
+make file is used to compile the programs (server and client) by running:
+$ make. 
+We had to pay attention to specify -lz in the gcc command since we are using zlib library.
+
+$ make clean ==> remove the tar and executables
+$ make dist ==> creates a tar that is ready for distribution
+ 
+
+lab1b-004854226.tar.gz:
+is the tarball file that contains all the required files mentioned above.
+
+
+

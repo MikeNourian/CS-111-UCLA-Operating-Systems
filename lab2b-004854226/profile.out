@@ -1,0 +1,50 @@
+Total: 439 samples
+     334  76.1%  76.1%      334  76.1% spinLock
+      47  10.7%  86.8%       47  10.7% __strcmp_sse42
+      45  10.3%  97.0%       80  18.2% SortedList_insert
+       5   1.1%  98.2%       21   4.8% SortedList_lookup
+       4   0.9%  99.1%        4   0.9% _init
+       3   0.7%  99.8%      438  99.8% threadFunc
+       1   0.2% 100.0%        1   0.2% __GI___mprotect
+       0   0.0% 100.0%      438  99.8% __clone
+       0   0.0% 100.0%        1   0.2% __libc_start_main
+       0   0.0% 100.0%        1   0.2% __pthread_create_2_1
+       0   0.0% 100.0%        1   0.2% _start
+       0   0.0% 100.0%        1   0.2% main
+       0   0.0% 100.0%      438  99.8% start_thread
+ROUTINE ====================== spinLock in /u/ee/ugrad/milad/CS111/lab2B/lab2_list.c
+   334    334 Total samples (flat / cumulative)
+     .      .   54:     }
+     .      .   55:     
+     .      .   56: }
+     .      .   57: 
+     .      .   58: void spinLock()
+---
+     .      .   59: {
+   334    334   60:     while (__sync_lock_test_and_set(&spinLockVar, 1))
+     .      .   61:         ; //spin
+     .      .   62: }
+---
+     .      .   63: 
+     .      .   64: void releaseSpinLock(){
+     .      .   65:     __sync_lock_release(&spinLockVar);
+     .      .   66: }
+     .      .   67: /*
+ROUTINE ====================== spinLock in /u/ee/ugrad/milad/CS111/lab2B/lab2_list.c
+   334    334 Total samples (flat / cumulative)
+     .      .   54:     }
+     .      .   55:     
+     .      .   56: }
+     .      .   57: 
+     .      .   58: void spinLock()
+---
+     .      .   59: {
+   334    334   60:     while (__sync_lock_test_and_set(&spinLockVar, 1))
+     .      .   61:         ; //spin
+     .      .   62: }
+---
+     .      .   63: 
+     .      .   64: void releaseSpinLock(){
+     .      .   65:     __sync_lock_release(&spinLockVar);
+     .      .   66: }
+     .      .   67: /*
