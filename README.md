@@ -1,4 +1,4 @@
-# CS 111 (Computer Architecture) UCLA Winter 18 Labs
+# CS 111 (Operating Systems) UCLA Winter 18 Labs
 
 | Taught by  | Quarter/Year |
 | -----------| -------------|
